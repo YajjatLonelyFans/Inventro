@@ -101,3 +101,47 @@ module.exports.logout = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
+
+module.exports.getUserProfile = async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        const { password, ...safeUser } = user._doc;
+        res.status(200).json({ user: safeUser });
+    } catch (error) {
+        console.error('Error fetching user profile:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+}
+
+module.exports.loggedInStatus = async (req, res) => {
+    const token = req.cookies.token;
+    if (!token) {
+        return res.json(false);
+    }
+    const verified = jwt.verify(token, process.env.JWT_SECRET);
+    if (!verified) {
+        return res.json(false);
+    }
+    return res.json(true);
+}
+module.exports.updateUser = async (req, res) => {
+    try {
+        const id = req.user._id;
+        const user = await User.findById(id);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        const updateData = await User.findByIdAndUpdate(id, { ...req.body }, { new: true });
+        if (!updateData) {
+            return res.status(400).json({ message: 'Error updating user' });
+        }
+        const { password, ...safeUser } = updateData._doc;
+        res.status(200).json({ message: 'User updated successfully', user: safeUser });
+    } catch (error) {
+        console.error('Error updating user:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
