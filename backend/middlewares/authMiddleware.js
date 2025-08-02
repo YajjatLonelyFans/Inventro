@@ -7,7 +7,7 @@ const protect = async (req, res, next) => {
             return res.status(401).json({ message: 'Not authorized, no token' });
         }
         const verified = jwt.verify(token, process.env.JWT_SECRET);
-        user = await User.findById(verified.id).select('-password');
+        const user = await User.findById(verified.id).select('-password');
         if (!user) {
             return res.status(401).json({ message: 'User not found' });
         }
