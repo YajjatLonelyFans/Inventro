@@ -36,7 +36,7 @@ const userSchema = new mongoose.Schema({
 }, {
     timestamps: true
 })
-userSchema.pre('save', function(next) {
+userSchema.post('save', function(next) {
     if (this.isModified('password')) {
         const salt = bcrypt.genSaltSync(10);
         this.password = bcrypt.hashSync(this.password, salt);

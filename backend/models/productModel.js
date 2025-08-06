@@ -16,12 +16,6 @@ const productSchema = new mongoose.Schema({
         required: [true, 'Product category is required'],
         enum: ['Electronics', 'Clothing', 'Books', 'Home & Garden', 'Sports', 'Food & Beverages', 'Other']
     },
-    sku: {
-        type: String,
-        required: [true, 'SKU is required'],
-        unique: true,
-        trim: true
-    },
     price: {
         type: Number,
         required: [true, 'Product price is required'],

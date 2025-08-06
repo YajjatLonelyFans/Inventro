@@ -2,18 +2,12 @@ const Product = require('../models/productModel');
 
 module.exports.createProduct = async (req, res) => {
     try {
-        const { name, description, category, sku, price, cost, quantity, minQuantity, supplier, location, image } = req.body;
-        
-        const existingProduct = await Product.findOne({ sku });
-        if (existingProduct) {
-            return res.status(400).json({ message: 'Product with this SKU already exists' });
-        }
+        const { name, description, category, price, cost, quantity, minQuantity, supplier, location, image } = req.body;
 
         const newProduct = new Product({
             name,
             description,
             category,
-            sku,
             price,
             cost,
             quantity,
@@ -62,11 +56,11 @@ module.exports.updateProduct = async (req, res) => {
             req.body,
             { new: true, runValidators: true }
         );
-        
+
         if (!product) {
             return res.status(404).json({ message: 'Product not found' });
         }
-        
+
         res.status(200).json({ message: 'Product updated successfully', product });
     } catch (error) {
         console.error('Error updating product:', error);
@@ -77,11 +71,11 @@ module.exports.updateProduct = async (req, res) => {
 module.exports.deleteProduct = async (req, res) => {
     try {
         const product = await Product.findOneAndDelete({ _id: req.params.id, user: req.user._id });
-        
+
         if (!product) {
             return res.status(404).json({ message: 'Product not found' });
         }
-        
+
         res.status(200).json({ message: 'Product deleted successfully' });
     } catch (error) {
         console.error('Error deleting product:', error);
@@ -97,11 +91,11 @@ module.exports.updateStock = async (req, res) => {
             { quantity },
             { new: true, runValidators: true }
         );
-        
+
         if (!product) {
             return res.status(404).json({ message: 'Product not found' });
         }
-        
+
         res.status(200).json({ message: 'Stock updated successfully', product });
     } catch (error) {
         console.error('Error updating stock:', error);
@@ -118,7 +112,7 @@ module.exports.getLowStockProducts = async (req, res) => {
                 { status: 'Out of Stock' }
             ]
         }).sort({ quantity: 1 });
-        
+
         res.status(200).json({ products });
     } catch (error) {
         console.error('Error fetching low stock products:', error);
