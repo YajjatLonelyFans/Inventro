@@ -25,8 +25,7 @@ const userSchema = new mongoose.Schema({
     phone:{
         type: String,
         required: [true, 'Phone number is required'],
-        match: [/^\d{10}$/, 'Please enter a valid 10-digit phone number'],
-        default:"+91"
+        match: [/^\d{10}$/, 'Please enter a valid 10-digit phone number']
     },
     bio:{
         type: String,
@@ -36,7 +35,7 @@ const userSchema = new mongoose.Schema({
 }, {
     timestamps: true
 })
-userSchema.post('save', function(next) {
+userSchema.pre('save', function(next) {
     if (this.isModified('password')) {
         const salt = bcrypt.genSaltSync(10);
         this.password = bcrypt.hashSync(this.password, salt);

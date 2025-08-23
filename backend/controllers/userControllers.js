@@ -17,6 +17,11 @@ module.exports.registerUser = async (req, res) => {
             return res.status(400).json({ message: 'Please fill all required fields' });
         }
 
+        // Validate phone number format (exactly 10 digits)
+        if (!phone || !/^\d{10}$/.test(phone)) {
+            return res.status(400).json({ message: 'Phone number must be exactly 10 digits' });
+        }
+
         const existingUser = await User.findOne({ email });
         if (existingUser) {
             return res.status(400).json({ message: 'This email is already registered' });
@@ -32,21 +37,26 @@ module.exports.registerUser = async (req, res) => {
         });
         await newUser.save();
         const token = generateToken(newUser._id);
-        newUser.token = token;
-        await newUser.save();
-        res.cookie('token', token, {
-            path: '/',
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            expires: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
-            maxAge: 2 * 24 * 60 * 60 * 1000 ,
-            sameSite: 'none'
+        
+       res.cookie('token', token, {
+        path: '/',
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production', 
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        expires: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
+        maxAge: 2 * 24 * 60 * 60 * 1000
         });
+
 
         res.status(201).json({ message: 'User registered successfully', user: newUser });
     } catch (error) {
         console.error('Error registering user:', error);
-        res.status(500).json({ message: 'Server error' });
+        console.error('Error details:', {
+            message: error.message,
+            stack: error.stack,
+            name: error.name
+        });
+        res.status(500).json({ message: 'Server error during registration' });
     }
 }
 
