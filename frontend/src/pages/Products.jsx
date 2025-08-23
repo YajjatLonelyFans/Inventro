@@ -9,8 +9,10 @@ import {
   EyeIcon,
   PencilIcon,
   TrashIcon,
-  ExclamationTriangleIcon
+  ExclamationTriangleIcon,
+  CubeIcon
 } from '@heroicons/react/24/outline';
+
 
 const Products = () => {
   const [products, setProducts] = useState([]);
@@ -45,19 +47,23 @@ const Products = () => {
   };
 
   const handleDelete = async () => {
-    if (!productToDelete) return;
+  if (!productToDelete || !productToDelete._id) {
+    toast.error("Invalid product selected");
+    return;
+  }
 
-    try {
-      await axios.delete(`/products/${productToDelete._id}`);
-      toast.success('Product deleted successfully');
-      fetchProducts();
-      setShowDeleteModal(false);
-      setProductToDelete(null);
-    } catch (error) {
-      console.error('Error deleting product:', error);
-      toast.error('Failed to delete product');
-    }
-  };
+  try {
+    await axios.delete(`/products/${productToDelete._id}`, { withCredentials: true });
+    toast.success("Product deleted successfully");
+    fetchProducts();
+    setShowDeleteModal(false);
+    setProductToDelete(null);
+  } catch (error) {
+    console.error("Error deleting product:", error);
+    toast.error(error.response?.data?.message || "Failed to delete product");
+  }
+};
+
 
   const confirmDelete = (product) => {
     setProductToDelete(product);
@@ -78,14 +84,24 @@ const Products = () => {
   };
 
   const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         product.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         product.supplier.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = !categoryFilter || product.category === categoryFilter;
-    const matchesStatus = !statusFilter || product.status === statusFilter;
-    
-    return matchesSearch && matchesCategory && matchesStatus;
-  });
+  if (!product) return false; // skip null entries
+
+  const name = product.name || "";
+  const description = product.description || "";
+  const supplier = product.supplier || "";
+
+  const matchesSearch =
+    name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    supplier.toLowerCase().includes(searchTerm.toLowerCase());
+
+  const matchesCategory = !categoryFilter || product.category === categoryFilter;
+  const matchesStatus = !statusFilter || product.status === statusFilter;
+
+  return matchesSearch && matchesCategory && matchesStatus;
+});
+
+
 
   if (loading) {
     return (

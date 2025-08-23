@@ -88,16 +88,17 @@ export const AuthProvider = ({ children }) => {
   };
 
   const changePassword = async (passwordData) => {
-    try {
-      await axios.put('/users/changepassword', passwordData);
-      toast.success('Password changed successfully!');
-      return { success: true };
-    } catch (error) {
-      const message = error.response?.data?.message || 'Password change failed';
-      toast.error(message);
-      return { success: false, message };
-    }
-  };
+  try {
+    await axios.put('/users/changepassword', passwordData, { withCredentials: true });
+    toast.success('Password changed successfully!');
+    return { success: true };
+  } catch (error) {
+    const message = error.response?.data?.message || 'Password change failed';
+    toast.error(message);
+    return { success: false, message };
+  }
+};
+
 
   const value = {
     user,

@@ -158,10 +158,12 @@ module.exports.updateUser = async (req, res) => {
 module.exports.changePassword = async (req , res) => {
     try {
         const userId = req.user._id;
-        const { oldPassword, newPassword } = req.body;
+        const { currentPassword, newPassword } = req.body;
+        console.log(req.body)
+        console.log(req.user)
 
-        if (!oldPassword || !newPassword) {
-            return res.status(400).json({ message: 'Please provide both old and new passwords' });
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({ message: 'Please provide both old and current passwords' });
         }
 
         const user = await User.findById(userId);
@@ -169,7 +171,7 @@ module.exports.changePassword = async (req , res) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        const isMatch = await bcrypt.compare(oldPassword, user.password);
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
         if (!isMatch) {
             return res.status(400).json({ message: 'Old password is incorrect' });
         }
