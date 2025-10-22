@@ -40,9 +40,10 @@ const Profile = () => {
 
     if (!profileData.phone || profileData.phone === '+91') {
       newErrors.phone = 'Phone number is required';
-    } else if (!/^\+91\d{10}$/.test(profileData.phone)) {
-      newErrors.phone = 'Please enter a valid 10-digit phone number with +91 country code';
-    }
+    } else if (!/^\d{10}$/.test(profileData.phone)) {
+  newErrors.phone = 'Please enter a valid 10-digit phone number';
+}
+
 
     if (profileData.bio && profileData.bio.length > 200) {
       newErrors.bio = 'Bio must not exceed 200 characters';
@@ -248,18 +249,22 @@ const Profile = () => {
                 <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
                   Phone Number *
                 </label>
-                <input
-                  type="tel"
-                  name="phone"
-                  id="phone"
-                  required
-                  className={`mt-1 block w-full border rounded-md px-3 py-2 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${
+                 <input
+                    type="tel"
+                    name="phone"
+                    id="phone"
+                    required
+                    className={`mt-1 block w-full border rounded-md px-3 py-2 text-gray-900 focus:outline-none sm:text-sm ${
                     profileErrors.phone ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                  placeholder="+91XXXXXXXXXX"
-                  value={profileData.phone}
-                  onChange={handleProfileChange}
-                />
+                    }`}
+                    placeholder="XXXXXXXXXX"
+                    value={profileData.phone ? `+91${profileData.phone.replace(/^\+91/, '')}` : '+91'}
+                    onChange={(e) => {
+                    let val = e.target.value.replace(/^\+91/, ''); // strip +91
+                    setProfileData({ ...profileData, phone: val });
+                  }}
+/>
+
                 {profileErrors.phone && <p className="mt-1 text-sm text-red-600">{profileErrors.phone}</p>}
               </div>
 

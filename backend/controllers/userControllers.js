@@ -180,7 +180,8 @@ module.exports.changePassword = async (req , res) => {
         user.password = await bcrypt.hash(newPassword, salt);
         await user.save();
 
-        res.status(200).json({ message: 'Password changed successfully' });
+        res.status(200).json({ success: true, message: 'Password changed successfully' });
+
     } catch (error) {
         console.error('Error changing password:', error);
         res.status(500).json({ message: 'Server error' });
