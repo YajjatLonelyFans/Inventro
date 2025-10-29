@@ -3,6 +3,9 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
 const generateToken = (id)=>{
+    if (!process.env.JWT_SECRET) {
+        throw new Error('JWT_SECRET is not defined');
+    }
     return jwt.sign({ id }, process.env.JWT_SECRET, {
         expiresIn: '2d',
     });
@@ -27,10 +30,13 @@ module.exports.registerUser = async (req, res) => {
             return res.status(400).json({ message: 'This email is already registered' });
         }
         
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
         const newUser = new User({
             name,
             email,
-            password,
+            password: hashedPassword,
             Image,
             phone,
             bio
@@ -46,9 +52,8 @@ module.exports.registerUser = async (req, res) => {
         expires: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
         maxAge: 2 * 24 * 60 * 60 * 1000
         });
-
-
-        res.status(201).json({ message: 'User registered successfully', user: newUser });
+        const { password: _pwd, ...safeUser } = newUser._doc;
+        res.status(201).json({ message: 'User registered successfully', user: safeUser });
     } catch (error) {
         console.error('Error registering user:', error);
         console.error('Error details:', {
@@ -84,7 +89,7 @@ module.exports.loginUser = async (req, res) => {
             path: '/',
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'None',
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
             expires: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
             maxAge: 2 * 24 * 60 * 60 * 1000
         });
@@ -103,7 +108,7 @@ module.exports.logout = async (req, res) => {
             path: '/',
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'None'
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
         });
         res.status(200).json({ message: 'User logged out successfully' });
     } catch (error) {
@@ -131,11 +136,15 @@ module.exports.loggedInStatus = async (req, res) => {
     if (!token) {
         return res.json(false);
     }
-    const verified = jwt.verify(token, process.env.JWT_SECRET);
-    if (!verified) {
+    try {
+        const verified = jwt.verify(token, process.env.JWT_SECRET);
+        if (!verified) {
+            return res.json(false);
+        }
+        return res.json(true);
+    } catch (err) {
         return res.json(false);
     }
-    return res.json(true);
 }
 module.exports.updateUser = async (req, res) => {
     try {
@@ -144,7 +153,14 @@ module.exports.updateUser = async (req, res) => {
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
-        const updateData = await User.findByIdAndUpdate(id, { ...req.body }, { new: true });
+        const allowedFields = ['name', 'phone', 'bio', 'Image'];
+        const updatePayload = {};
+        for (const field of allowedFields) {
+            if (Object.prototype.hasOwnProperty.call(req.body, field)) {
+                updatePayload[field] = req.body[field];
+            }
+        }
+        const updateData = await User.findByIdAndUpdate(id, updatePayload, { new: true, runValidators: true });
         if (!updateData) {
             return res.status(400).json({ message: 'Error updating user' });
         }
@@ -159,8 +175,6 @@ module.exports.changePassword = async (req , res) => {
     try {
         const userId = req.user._id;
         const { currentPassword, newPassword } = req.body;
-        console.log(req.body)
-        console.log(req.user)
 
         if (!currentPassword || !newPassword) {
             return res.status(400).json({ message: 'Please provide both old and current passwords' });
