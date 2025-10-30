@@ -30,13 +30,10 @@ module.exports.registerUser = async (req, res) => {
             return res.status(400).json({ message: 'This email is already registered' });
         }
         
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
-
         const newUser = new User({
             name,
             email,
-            password: hashedPassword,
+            password,
             Image,
             phone,
             bio
@@ -190,9 +187,9 @@ module.exports.changePassword = async (req , res) => {
             return res.status(400).json({ message: 'Old password is incorrect' });
         }
 
-        const salt = await bcrypt.genSalt(10);
-        user.password = await bcrypt.hash(newPassword, salt);
-        await user.save();
+    // assign plain password and let model pre-save hook hash it
+    user.password = newPassword;
+    await user.save();
 
         res.status(200).json({ success: true, message: 'Password changed successfully' });
 

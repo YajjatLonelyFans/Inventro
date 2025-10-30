@@ -36,12 +36,16 @@ const userSchema = new mongoose.Schema({
     timestamps: true
 })
 userSchema.pre('save', function(next) {
-    if (this.isModified('password')) {
+    // Only hash the password if it has been modified (or is new)
+    if (!this.isModified('password')) return next();
+
+    try {
         const salt = bcrypt.genSaltSync(10);
         this.password = bcrypt.hashSync(this.password, salt);
-        next();
+        return next();
+    } catch (err) {
+        return next(err);
     }
-    next();
 });
 
 const User = mongoose.model('User', userSchema);
