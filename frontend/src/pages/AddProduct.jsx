@@ -105,7 +105,7 @@ const AddProduct = () => {
         minQuantity: parseInt(formData.minQuantity)
       };
 
-      await axios.post('/products', productData);
+  await axios.post(`${import.meta.env.VITE_API_URL}/products`, productData);
       toast.success('Product created successfully!');
       navigate('/products');
     } catch (error) {

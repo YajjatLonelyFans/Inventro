@@ -34,7 +34,7 @@ const EditProduct = () => {
 
   const fetchProduct = async () => {
     try {
-      const response = await axios.get(`/products/${id}`);
+  const response = await axios.get(`${import.meta.env.VITE_API_URL}/products/${id}`);
       const product = response.data.product;
       setFormData({
         name: product.name,

@@ -29,8 +29,8 @@ const Dashboard = () => {
   const fetchDashboardData = async () => {
     try {
       const [productsResponse, lowStockResponse] = await Promise.all([
-        axios.get('/products'),
-        axios.get('/products/low-stock')
+        axios.get(`${import.meta.env.VITE_API_URL}/products`),
+        axios.get(`${import.meta.env.VITE_API_URL}/products/low-stock`)
       ]);
 
       const products = productsResponse.data.products;
